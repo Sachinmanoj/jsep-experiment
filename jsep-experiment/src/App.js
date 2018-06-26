@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import ContentEditable from 'react-contenteditable'
+import ContentEditable from './components/ContentEditor/ContentEditor';
+import constants from './constants/constants';
 import jsep from 'jsep';
 import './App.css';
 
@@ -7,30 +8,37 @@ class App extends Component {
   constructor() {
     super()
     this.configureJSEP();
+    this.content = '';
     this.state = {
-      html: "abc + 1 + 4 -",
-      jsepOutput: this.getJSEP("abc + 1 + 4 -")
+      html: ''
     };
   };
 
   configureJSEP () {
+    var binaryExp = constants.allowedBinaryExpression;
     jsep.removeAllUnaryOps();
+    jsep.removeAllBinaryOps();
+    Object.keys(binaryExp).forEach(exp => {
+      jsep.addBinaryOp(exp, binaryExp[exp].precedence);
+    });
   }
 
-  getJSEP(str){
+  evaluate(str) {
     try{
-      return JSON.stringify(jsep(str))
+      return JSON.stringify(jsep(str));
     }
     catch (err) {
-      return JSON.stringify(err)
+      return JSON.stringify(err);
     }
   }
 
-  handleChange = evt => {
-    this.setState({
-      html: evt.target.value,
-      jsepOutput: this.getJSEP(evt.target.value)
-    });
+  handleChange = data => {
+    if(data.target.key === " ") {
+
+    }
+    else if(this.state.html !== data.target.value) {
+      
+    }
   };
 
   render = () => {

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "jsep": "^0.3.4",
+    "prismjs": "^1.15.0",
     "react": "^16.4.1",
     "react-contenteditable": "^2.1.0",
     "react-dom": "^16.4.1",
