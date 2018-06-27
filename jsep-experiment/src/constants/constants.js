@@ -4,6 +4,7 @@ const constant = {
     "Identifier",
     "Literal",
   ],
+  separtors: ['(', ')', '[', ']', '+', '-', '*', '/', ' '],
   allowedBinaryExpression: {
     "+": {
       precedence: 9,
@@ -90,7 +91,6 @@ const constant = {
     "Earnings Quality Rank",
     "Price to Intrinsic Value Rank",
     "Fundamental Score",
-    "Fair Value",
     "Future Close Price",
     "Lot Size",
     "Future Open Interest",
@@ -101,6 +101,7 @@ const constant = {
     "1W Change in Future Volume",
     "Basis",
     "Fair Value Spread",
+    "Fair Value",
     "Cash & Carry Profit",
     "Rollover Cost",
     "Percentage Rollover",
@@ -145,8 +146,8 @@ const constant = {
   ],
   customfilterSyntax: {
     'number': /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
-    'operator': /-|\+|\*|\/|/,
-    'punctuation': /[{}[\];(),.:]/
+    'operator': /-|\+|\*|\//,
+    'punctuation': /[[\]()]/,
   }
 }
 

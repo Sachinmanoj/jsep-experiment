@@ -41,11 +41,14 @@ export default class ContentEditable extends React.Component {
 
   render() {
     var { tagName, html, ...props } = this.props;
-    return ( <textarea {...props} ref={(e) => this.htmlEl = e} onInput={this.emitChange}
+    return ( <div {...props} ref={(e) => this.htmlEl = e} 
+      onInput={this.emitChange}
       onBlur={this.props.onBlur || this.emitChange} 
-      value={'html'}>
+      // value={'html'}>
+      contentEditable={true}
+      dangerouslySetInnerHTML={{__html: html}} >
       {this.props.children}
-    </textarea>);
+    </div>);
   }
 
 }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import ContentEditable from './components/ContentEditor/ContentEditor';
+import CustomEditor from './components/CustomEditor/CustomEditor';
 import constants from './constants/constants';
 import jsep from 'jsep';
 import './App.css';
@@ -44,7 +44,7 @@ class App extends Component {
   render = () => {
     return (
       <div> 
-        <ContentEditable className="center"
+        <CustomEditor className="center"
                   html={this.state.html} // innerHTML of the editable div
                   disabled={false}       // use true to disable edition
                   onChange={this.handleChange} // handle innerHTML change
