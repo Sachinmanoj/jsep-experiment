@@ -46,8 +46,15 @@ class CustomEditor extends Component {
     this.codeHTML = null;
   }
 
+  createFilterRegex(filtersArr) {
+    filtersArr.sort(function(a, b){
+      return b.length - a.length;
+    });
+    return filtersArr.join('|');
+  }
+
   updateCustomFilterKeyWords() {
-    let regexpress = `(?:${filters.join('|')})`;
+    let regexpress = `(?:${this.createFilterRegex([...filters])})`;
     return new RegExp(regexpress);
   }
 
