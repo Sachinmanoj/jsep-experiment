@@ -373,7 +373,7 @@ class CustomEditor extends Component {
   render() {
     return (
       <div className="cust-editor__win" spellCheck="false"> 
-        <textarea className="cust-editor__text-area cust-editor__flatten" 
+        <textarea className="cust-editor__text-area cust-editor__flatten"
           ref={(e) => this.elTextarea = e} 
           onInput={this.handleInputCode} 
           onPaste={this.handlePasteCode} 
