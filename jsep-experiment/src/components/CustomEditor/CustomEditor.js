@@ -24,7 +24,8 @@ class CustomEditor extends Component {
     this.activeToken = null;
     this.codeKeyHandle = {
       pasted: false,
-      spaceEnteredOnSearch: false
+      spaceEnteredOnSearch: false,
+      isEnterKey: false,
     }
     this.languageSyntax = 'customfilter';
     this.syntaxRegex = {                        // The ORDER matters on this regex (Grammer) patter
@@ -41,6 +42,7 @@ class CustomEditor extends Component {
     this.handlePasteCode = this.handlePasteCode.bind(this);
     this.handleInputCode = this.handleInputCode.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleOnScroll = this.handleOnScroll.bind(this);
 
     this.code = null;
     this.codeHTML = null;
@@ -60,7 +62,7 @@ class CustomEditor extends Component {
 
   updateCustomFilterErrors() {
     // let regexpress = `^/(?!${filters.join('|')})([\\S]+)`;
-    let regexpress = `([\\S]+)`;
+    let regexpress = `([\\S]){1,61}`;     // MUST REPLACE TODO ON ACTUAL 61 -- 
     return new RegExp(regexpress);
   }
 
@@ -123,6 +125,14 @@ class CustomEditor extends Component {
       return;
     }
     this.updateWhiteSpaceAndPreventDefault(e, 1);
+  }
+
+  handleEnter(e) {
+    const enterCode = 13;
+    if(this.state.showDropdown || e.keyCode !== enterCode) {
+      return;
+    }
+    this.codeKeyHandle.isEnterKey = true;
   }
 
   updateSVGandPreventDefault(e, code, svgFile) {
@@ -221,7 +231,7 @@ class CustomEditor extends Component {
     this.elCode.innerHTML = Prism.highlight(value, syntaxGrammer);
   }
 
-  handleInputCode(e) { // TODO
+  handleInputCode(e) { 
     let value = e.target.value;
     const selectionStart = this.elTextarea.selectionStart;
     let searchTextObj = this.getSearchText(value, selectionStart);
@@ -229,8 +239,8 @@ class CustomEditor extends Component {
     if(searchTextResult.length > 0) {
       this.setState({
         showDropdown: true,
-        dropDownTop: 36,
-        dropDownLeft: searchTextObj.textPos * 12.5 + 13,
+        dropDownTop: 36, // MUST REPLACE TODO ON ACTUAL 36 and others --
+        dropDownLeft: searchTextObj.textPos * 12.5 + 13, // MUST REPLACE TODO ON ACTUAL 13 -- 
         searchList: [...searchTextResult],
         selectedSearchListIndex: 0,
         searchText: searchTextObj.searchText,
@@ -247,12 +257,18 @@ class CustomEditor extends Component {
   handleKeyDown(e) {
     this.codeKeyHandle.pasted = false;
     this.codeKeyHandle.spaceEnteredOnSearch = false;
+    this.codeKeyHandle.isEnterKey = false;
+    this.handleDropdownOptions(e);
     this.handleTabs(e);
     this.handleClosingCharacters(e);
     this.handleOperators(e);
     this.handleSpace(e);
-    this.handleDropdownOptions(e);
+    this.handleEnter(e);
   }
+
+  handleOnScroll(e) {
+    this.elCode.style.transform = `translate3d(-${e.target.scrollLeft}px, -${e.target.scrollTop}px, 0)`;
+  };
 
 
   /** Search operation */
@@ -304,7 +320,10 @@ class CustomEditor extends Component {
   }
 
   canSearch(searchText) {
-    return typeof searchText !== 'undefined' && searchText.replace(/ /g, '').length > 0 && !this.codeKeyHandle.pasted;
+    return !this.codeKeyHandle.pasted
+      && !this.codeKeyHandle.isEnterKey
+      && typeof searchText !== 'undefined'
+      && searchText.replace(/ /g, '').length > 0;
   }
 
   getSearchResults(searchText){
@@ -372,15 +391,18 @@ class CustomEditor extends Component {
 
   render() {
     return (
-      <div className="cust-editor__win" spellCheck="false"> 
-        <textarea className="cust-editor__text-area cust-editor__flatten"
-          ref={(e) => this.elTextarea = e} 
-          onInput={this.handleInputCode} 
-          onPaste={this.handlePasteCode} 
-          onKeyDown={this.handleKeyDown}/>
-        <pre className="cust-editor__pre cust-editor__flatten" > 
-          <code ref={(e) => this.elCode = e} className={`cust-editor__code language-${this.languageSyntax}`}> </code>
-        </pre>
+      <div className="cust-editor__win">
+        <div className="cust-editor__container" spellCheck="false"> 
+          <textarea className="cust-editor__text-area cust-editor__flatten cust-editor__wrap"
+            ref={(e) => this.elTextarea = e} 
+            onInput={this.handleInputCode} 
+            onPaste={this.handlePasteCode} 
+            onKeyDown={this.handleKeyDown}
+            onScroll={this.handleOnScroll}/>
+          <pre className="cust-editor__pre cust-editor__flatten cust-editor__wrap" > 
+            <code ref={(e) => this.elCode = e} className={`cust-editor__code language-${this.languageSyntax}`}> </code>
+          </pre>
+        </div>
         {
           this.state.showDropdown && 
           <div className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>

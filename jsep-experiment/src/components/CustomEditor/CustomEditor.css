@@ -1,20 +1,25 @@
 .cust-editor__win {
-  position: absolute;
   overflow: visible;
+  position: relative;
+  margin: 30px auto;
+  width: 800px;
+  min-height: 150px;
+  z-index: 0;
+}
 
+.cust-editor__container {
+  position: absolute;
+  overflow: auto;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
   background: #fff;
   color: #535b62;
-
   box-sizing: border-box;
   border: 1px solid #808080;
   padding: 10px 15px;
   text-align: left;
-  z-index: 1;
   border-radius: 4px;
-
-  width: 800px;
-  min-height: 150px;
-  margin: 30px 200px;
 }
 
 .cust-editor__win, .cust-editor__win * {
@@ -24,21 +29,21 @@
 .cust-editor__text-area {
   background: none;
   border: none;
-  color: transparent;
-  z-index: 1;
+  /* color: transparent; */
+  line-height: 25px !important;   /* This is important, syncs the cursor between Pre and Text-Area */
+  z-index: 3;
   resize: none;
-
   -webkit-appearance: pre;
   caret-color: #111;
-  z-index: 2;
   width: 100%;
   height: 100%;
 }
 
 .cust-editor__pre {
   pointer-events: none;
-  z-index: 3;
+  z-index: 5;
   overflow: hidden;
+  line-height: 24px !important;   /* This is important, syncs the cursor between Pre and Text-Area */
 }
 
 .cust-editor__code {
@@ -51,8 +56,6 @@
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   padding: 10px;
   font-size: 21px;
-  line-height: 24px;
-  white-space: pre;
   position: absolute;
   top: 0;
   left: 0;
@@ -60,6 +63,11 @@
   margin: 0 !important;
   outline: none;
   text-align: left;
+}
+
+.cust-editor__wrap {
+  white-space: pre-wrap; /* This is important, to wrap code and whitespace */
+  word-wrap: break-word;
 }
 
 .cust-editor__drop-down {
@@ -71,7 +79,7 @@
   font-family: monospace;
   background: #ffffff;
   border: solid 1px #d1d1d1;
-  z-index: 5;
+  z-index: 7;
   background-color: rgb(255, 255, 255);
   box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
 }
@@ -104,23 +112,27 @@ ol, ul {
 
 .cust-editor__win .token.punctuation {
   color: #535b62;
+  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.keyword {
   color: #19af55;
+  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.operator {
   color: #1f7ae0;
+  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.number {
   color: #535b62;
+  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.error {
-  border-bottom: 1px solid  #ff5942;
   color: #ef4f5d;
+  border-bottom: 1px solid  #ff5942;
 }
 
 .cust-editor__win .token.active {
