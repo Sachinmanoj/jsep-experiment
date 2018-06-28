@@ -24,15 +24,15 @@ const constant = {
     "Sub-Sector",
     "Market Cap",
     "Close Price",
+    "1W Return vs Nifty",
+    "1M Return vs Nifty",
+    "6M Return vs Nifty",
+    "1Y Return vs Nifty",
     "1D Return",
     "1W Return",
     "1M Return",
     "6M Return",
     "1Y Return",
-    "1W Return vs Nifty",
-    "1M Return vs Nifty",
-    "6M Return vs Nifty",
-    "1Y Return vs Nifty",
     "% Away From 52W High",
     "% Away From 52W Low",
     "Daily Volume",
@@ -145,7 +145,7 @@ const constant = {
     "Super Trend"
   ],
   customfilterSyntax: {
-    'number': /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
+    'number': /\b0x[\da-f]+\b|(?!\b\d+w|\b\d+W|\b\d+d|\b\d+D|\b\d+m|\b\d+M|\b\d+y|\b\d+Y)(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
     'operator': /-|\+|\*|\//,
     'punctuation': /[[\]()]/,
   }

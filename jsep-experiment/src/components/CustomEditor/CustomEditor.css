@@ -1,6 +1,6 @@
 .cust-editor__win {
   position: absolute;
-  overflow: hidden;
+  overflow: visible;
 
   background: #fff;
   color: #535b62;
@@ -65,7 +65,20 @@
 }
 
 .cust-editor__drop-down {
+  position: absolute;
+  width: 300px;
+  max-height: 150px;
+  overflow-y: scroll;
+  font-family: monospace;
+  background: #f4f4f4;
+  font-size: 12px;
+  border: 1px solid #eeeeee;
+  z-index: 10;
+}
 
+.cust-editor__drop-down ul li {
+  padding: 3px 5px;
+  border-bottom: 1px solid #eeeeee;
 }
 
 .cust-editor__win .token {
@@ -90,4 +103,8 @@
 
 .cust-editor__win .token.error {
   border-bottom: 1px solid  #ef4f5d;
+}
+
+.cust-editor__win .token.error:active {
+  border-bottom: none;
 }
