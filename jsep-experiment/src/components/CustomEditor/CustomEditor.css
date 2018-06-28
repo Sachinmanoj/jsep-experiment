@@ -73,25 +73,30 @@
   font-family: monospace;
   background: #ffffff;
   border: solid 1px #d1d1d1;
-  z-index: 10;
-  cursor: default;
+  z-index: 5;
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
 }
 
 ol, ul {
   list-style: none;
-  padding: 8px 4px;
-  margin: 0;
+  padding: 0;
+  margin: 8px;
 }
 
-.cust-editor__drop-down li {
+.cust-editor__drop-down ul li {
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin: 4px 0px;
   font-size: 15px;
   font-weight: 500;
-  padding: 8px 16px;
   color: #535b62;
   cursor: pointer;
 }
 
 .cust-editor__drop-down li.selected {
+  font-weight: 600;
+  background-color: rgb(249, 250, 251);
   color: #1f7ae0;
 }
 

@@ -309,7 +309,13 @@ class CustomEditor extends Component {
 
   updateTheSearchOptionIndex(index) {
     if(index >= 0 && index < this.state.searchList.length) {
-      this.setActiveTextOptionSelection(index);
+      this.setActiveTextOptionSelection(index, () => {
+        let elem = document.getElementById("cust-editor__id-" + index);
+        return elem ? elem.scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest'
+        }) : null;
+      });
     }
   }
 
@@ -344,10 +350,10 @@ class CustomEditor extends Component {
     return false;
   }
 
-  setActiveTextOptionSelection(index) {
+  setActiveTextOptionSelection(index, callback = () => {}) {
     this.setState({
       selectedSearchListIndex: index
-    });
+    }, callback);
   }
 
   onTextSelection(index) {
@@ -370,17 +376,19 @@ class CustomEditor extends Component {
         </pre>
         {
           this.state.showDropdown && 
-          <ul className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
-            {
-              this.state.searchList.map((filter, index) =>
-                <li className={this.state.selectedSearchListIndex === index ? 'selected' : ''} 
-                  onMouseEnter={() => this.setActiveTextOptionSelection(index)} 
-                  onMouseDown={() => this.onTextSelection(index)} key={filter.replace(/ /g, '')}>
-                  {filter}
-                </li>
-              )
-            }
-          </ul>
+          <div className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
+            <ul>
+              {
+                this.state.searchList.map((filter, index) =>
+                  <li id={'cust-editor__id-' + index} className={this.state.selectedSearchListIndex === index ? 'selected' : ''} 
+                    onMouseEnter={() => this.setActiveTextOptionSelection(index)} 
+                    onMouseDown={() => this.onTextSelection(index)} key={filter.replace(/ /g, '')}>
+                    {filter}
+                  </li>
+                )
+              }
+            </ul>
+          </div>
         }
       </div>
     );
