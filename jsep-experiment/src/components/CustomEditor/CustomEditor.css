@@ -53,7 +53,7 @@
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   padding: 10px;
   font-size: 21px;
-  line-height: 36px;
+  line-height: 24px;
   white-space: pre;
   position: absolute;
   top: 0;
@@ -66,19 +66,33 @@
 
 .cust-editor__drop-down {
   position: absolute;
-  width: 300px;
-  max-height: 150px;
+  max-width: 420px;
+  border-radius: 4px;
+  max-height: 300px;
   overflow-y: scroll;
   font-family: monospace;
-  background: #f4f4f4;
-  font-size: 12px;
-  border: 1px solid #eeeeee;
+  background: #ffffff;
+  border: solid 1px #d1d1d1;
   z-index: 10;
+  cursor: default;
 }
 
-.cust-editor__drop-down ul li {
-  padding: 3px 5px;
-  border-bottom: 1px solid #eeeeee;
+ol, ul {
+  list-style: none;
+  padding: 8px 4px;
+  margin: 0;
+}
+
+.cust-editor__drop-down li {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 8px 16px;
+  color: #535b62;
+  cursor: pointer;
+}
+
+.cust-editor__drop-down li.selected {
+  color: #1f7ae0;
 }
 
 .cust-editor__win .token {
@@ -94,7 +108,7 @@
 }
 
 .cust-editor__win .token.operator {
-  color: #2158f1;
+  color: #1f7ae0;
 }
 
 .cust-editor__win .token.number {
@@ -102,9 +116,10 @@
 }
 
 .cust-editor__win .token.error {
-  border-bottom: 1px solid  #ef4f5d;
+  border-bottom: 1px solid  #ff5942;
+  color: #ef4f5d;
 }
 
-.cust-editor__win .token.error:active {
-  border-bottom: none;
+.cust-editor__win .token.active {
+  border-bottom: 1px solid  #1f7ae0;
 }

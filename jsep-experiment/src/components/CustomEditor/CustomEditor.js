@@ -13,6 +13,9 @@ class CustomEditor extends Component {
       dropDownTop: 0,
       dropDownLeft: 0,
       searchList: [],
+      selectedSearchListIndex: 0,
+      searchText: null,
+      searchTextPos: null,
     }
 
     this.opts = {
@@ -34,6 +37,7 @@ class CustomEditor extends Component {
     this.elTextarea = null;
     this.elCode = null;
 
+    this.onTextSelection = this.onTextSelection.bind(this);
     this.handlePasteCode = this.handlePasteCode.bind(this);
     this.handleInputCode = this.handleInputCode.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -179,20 +183,54 @@ class CustomEditor extends Component {
     this.codeKeyHandle.pasted = true;
   }
 
+/**  
+ * // activeRegexCode.lastIndex = searchTextObj.textPos; { --> PRISM JS is resetting the lastIndex to Zero always <-- }
+  // TODO SO........... HACKY...... Avoiding the last close index reset operation in Prism JS
+
+    activeCodeLastIndex(value) {
+      var codeGram = {
+        set lastIndex(settingValue) {
+          this.val = value
+        },
+        val: value
+      }
+      return codeGram;
+    }
+ 
+    activeRegexGrammer(searchTextObj) {
+      let activeRegexCode = new RegExp(`(?:${searchTextObj.searchText})`, 'y');
+      activeRegexCode = Object.assign(activeRegexCode, this.activeCodeLastIndex(searchTextObj.textPos));  
+      activeRegexCode.lastIndex = -12;
+      return activeRegexCode;
+    }
+*/
+
+  updateCodeWithSearchResult(value, searchTextObj) {
+    this.updateCode(value);
+    const syntaxGrammer = { 
+      // active: this.activeRegexGrammer(searchTextObj),
+      ...this.syntaxRegex 
+    }
+    this.elCode.innerHTML = Prism.highlight(value, syntaxGrammer);
+  }
+
   handleInputCode(e) { // TODO
     let value = e.target.value;
-    let searchText = this.getSearchText(value);
-    let searchTextResult = this.canSearch(searchText) ? this.getSearchResults(searchText) : [];
+    const selectionStart = this.elTextarea.selectionStart;
+    let searchTextObj = this.getSearchText(value, selectionStart);
+    let searchTextResult = this.canSearch(searchTextObj.searchText) ? this.getSearchResults(searchTextObj.searchText) : [];
     if(searchTextResult.length > 0) {
       this.setState({
         showDropdown: true,
-        dropDownTop: 50,
-        dropDownLeft: 50,
-        searchList: [...searchTextResult]
-      }, () => 
-      this.updateCode(value));
-      let v = Prism.highlight(value, this.syntaxRegex);
-      console.log(v);
+        dropDownTop: 36,
+        dropDownLeft: searchTextObj.textPos * 12.5 + 13,
+        searchList: [...searchTextResult],
+        selectedSearchListIndex: 0,
+        searchText: searchTextObj.searchText,
+        searchTextPos: searchTextObj.textPos,
+      }, () => {
+        this.updateCodeWithSearchResult(value, searchTextObj)
+      });
     }
     else {
       this.hideDropdown(() => this.updateCodeAndHighlight(value));
@@ -206,6 +244,7 @@ class CustomEditor extends Component {
     this.handleClosingCharacters(e);
     this.handleOperators(e);
     this.handleSpace(e);
+    this.handleDropdownOptions(e);
   }
 
 
@@ -221,30 +260,40 @@ class CustomEditor extends Component {
     return {
       tokens: tokens,
       token: tokens[tokIndex],
-      tokenIndex: tokIndex
+      tokenIndex: tokIndex,
+      completeLengthParsed: sumLength
     };
   }
 
-  getSearchText(text) {
-    const selectionStart = this.elTextarea.selectionStart;
+  getSearchText(text, selectionStart) {
     const currentChar = text.charAt(selectionStart-1)
     const isSeparator = separtors.includes(currentChar);
     if(isSeparator && this.activeToken === null) {
-      return;
+      return {};
     }
     let tokenValue = this.getTockenOfChar(text, selectionStart);
     if(this.activeToken === null && (!tokenValue.token || tokenValue.token.type === 'keyword')) {
-      return;
+      return {};
     }
     else if(this.activeToken !== null) {
       let tokStr = tokenValue.tokens.slice(this.activeToken, tokenValue.tokenIndex + 1);
-      let isAllSearchable = tokStr.every((tok) => (typeof tok === 'string' || tok.type !== 'keyword'));
+      let isAllSearchable = tokStr.length > 1 && tokStr.every((tok) => (typeof tok === 'string' || tok.type !== 'keyword'));
       if(isAllSearchable) {
-        return tokStr.reduce((str, tok) => tok.content ? str + tok.content : str + tok, '');
+        const searchText = tokStr.reduce((str, tok) => tok.content ? str + tok.content : str + tok, '');
+        const textPos = tokenValue.completeLengthParsed - searchText.length;
+        return {
+          searchText,
+          textPos
+        }
       }
     }
     this.activeToken = tokenValue.tokenIndex;
-    return tokenValue.token.content;
+    const searchText = tokenValue.token.content ? tokenValue.token.content : tokenValue.token;
+    const textPos = tokenValue.completeLengthParsed - searchText.length;
+    return {
+      searchText,
+      textPos 
+    }
   }
 
   canSearch(searchText) {
@@ -254,6 +303,58 @@ class CustomEditor extends Component {
   getSearchResults(searchText){
     const searchTextPattern = new RegExp(searchText.replace(/[^a-z A-Z 0-9 %]/g,''),'gi'); 
     return filters.filter( childFilter => childFilter.search(searchTextPattern)>-1 );
+  }
+
+  /** Dropdown option list */
+
+  updateTheSearchOptionIndex(index) {
+    if(index >= 0 && index < this.state.searchList.length) {
+      this.setActiveTextOptionSelection(index);
+    }
+  }
+
+  handleDropdownOptions(e) {
+    if(this.state.showDropdown) {
+      switch(e.keyCode) {
+
+        case 40: // ArrowDown
+          this.updateTheSearchOptionIndex(this.state.selectedSearchListIndex + 1);
+          e.preventDefault();
+          return true;
+  
+        case 38: // ArrowUp
+          this.updateTheSearchOptionIndex(this.state.selectedSearchListIndex - 1);
+          e.preventDefault();
+          return true;
+  
+        case 27: // Escape
+          this.hideDropdown();
+          e.preventDefault();
+          return true;
+  
+        case 13: // Enter
+          this.onTextSelection(this.state.selectedSearchListIndex);
+          e.preventDefault();
+          return true;
+  
+        default:
+          return false;
+      }
+    }
+    return false;
+  }
+
+  setActiveTextOptionSelection(index) {
+    this.setState({
+      selectedSearchListIndex: index
+    });
+  }
+
+  onTextSelection(index) {
+    let searchedStr = this.state.searchList[index];
+    let newCode = this.code.slice(0, this.state.searchTextPos) + 
+      this.code.slice(this.state.searchTextPos).replace(this.state.searchText, searchedStr);
+    this.hideDropdown(() => this.updateCodeAndHighlight(newCode));
   }
 
   render() {
@@ -269,15 +370,17 @@ class CustomEditor extends Component {
         </pre>
         {
           this.state.showDropdown && 
-          <div className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
-            <ul>
-              {
-                this.state.searchList.map((filter) =>
-                  <li key={filter.replace(/ /g, '')}>{filter}</li>
-                )
-              }
-            </ul>
-          </div>
+          <ul className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
+            {
+              this.state.searchList.map((filter, index) =>
+                <li className={this.state.selectedSearchListIndex === index ? 'selected' : ''} 
+                  onMouseEnter={() => this.setActiveTextOptionSelection(index)} 
+                  onMouseDown={() => this.onTextSelection(index)} key={filter.replace(/ /g, '')}>
+                  {filter}
+                </li>
+              )
+            }
+          </ul>
         }
       </div>
     );
