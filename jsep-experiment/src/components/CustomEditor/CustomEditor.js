@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {escape_html} from './utils/html-escape';
 import {customfilterSyntax, filters, separtors} from '../../constants/constants';
 import Prism from 'prismjs';
+import getCaretCoordinates from 'textarea-caret';
 import './CustomEditor.css'
 
 class CustomEditor extends Component {
@@ -235,12 +236,15 @@ class CustomEditor extends Component {
     let value = e.target.value;
     const selectionStart = this.elTextarea.selectionStart;
     let searchTextObj = this.getSearchText(value, selectionStart);
-    let searchTextResult = this.canSearch(searchTextObj.searchText) ? this.getSearchResults(searchTextObj.searchText) : [];
+    let searchTextResult = this.canSearch(searchTextObj.searchText) ? 
+        this.getSearchResults(searchTextObj.searchText) : [];    
+    var caret = getCaretCoordinates(this.elTextarea, this.elTextarea.selectionEnd);
+
     if(searchTextResult.length > 0) {
       this.setState({
         showDropdown: true,
-        dropDownTop: 36, // MUST REPLACE TODO ON ACTUAL 36 and others --
-        dropDownLeft: searchTextObj.textPos * 12.5 + 13, // MUST REPLACE TODO ON ACTUAL 13 -- 
+        dropDownTop: caret.top + caret.height, // MUST REPLACE TODO ON ACTUAL 36 and others --
+        dropDownLeft: caret.left, //searchTextObj.textPos * 12.5 + 13, // MUST REPLACE TODO ON ACTUAL 13 -- 
         searchList: [...searchTextResult],
         selectedSearchListIndex: 0,
         searchText: searchTextObj.searchText,

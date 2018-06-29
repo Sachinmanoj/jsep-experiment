@@ -30,7 +30,6 @@
   background: none;
   border: none;
   /* color: transparent; */
-  line-height: 25px !important;   /* This is important, syncs the cursor between Pre and Text-Area */
   z-index: 3;
   resize: none;
   -webkit-appearance: pre;
@@ -43,7 +42,6 @@
   pointer-events: none;
   z-index: 5;
   overflow: hidden;
-  line-height: 24px !important;   /* This is important, syncs the cursor between Pre and Text-Area */
 }
 
 .cust-editor__code {
@@ -56,6 +54,7 @@
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   padding: 10px;
   font-size: 21px;
+  line-height: 25px !important;   /* This is important, syncs the cursor between Pre and Text-Area */
   position: absolute;
   top: 0;
   left: 0;
@@ -73,6 +72,7 @@
 .cust-editor__drop-down {
   position: absolute;
   max-width: 420px;
+  min-width: 360px;
   border-radius: 4px;
   max-height: 300px;
   overflow-y: scroll;
@@ -106,28 +106,20 @@ ol, ul {
   color: #1f7ae0;
 }
 
-.cust-editor__win .token {
-  display: inline-block;
-}
-
 .cust-editor__win .token.punctuation {
   color: #535b62;
-  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.keyword {
   color: #19af55;
-  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.operator {
   color: #1f7ae0;
-  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.number {
   color: #535b62;
-  border-bottom: 1px solid  transparent;  /* Important to keep the cursor sync between text-area and pre */
 }
 
 .cust-editor__win .token.error {
