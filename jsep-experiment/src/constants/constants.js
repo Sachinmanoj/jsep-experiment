@@ -4,7 +4,7 @@ const constant = {
     "Identifier",
     "Literal",
   ],
-  separtors: ['(', ')', '[', ']', '+', '-', '*', '/', ' '],
+  separtors: ['(', ')', '[', ']', '+', '-', '*', '/', ' ', '\n'],
   allowedBinaryExpression: {
     "+": {
       precedence: 9,

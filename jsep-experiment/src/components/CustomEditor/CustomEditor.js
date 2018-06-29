@@ -239,12 +239,13 @@ class CustomEditor extends Component {
     let searchTextResult = this.canSearch(searchTextObj.searchText) ? 
         this.getSearchResults(searchTextObj.searchText) : [];    
     var caret = getCaretCoordinates(this.elTextarea, this.elTextarea.selectionEnd);
+    // console.log(caret);
 
     if(searchTextResult.length > 0) {
       this.setState({
         showDropdown: true,
-        dropDownTop: caret.top + caret.height, // MUST REPLACE TODO ON ACTUAL 36 and others --
-        dropDownLeft: caret.left, //searchTextObj.textPos * 12.5 + 13, // MUST REPLACE TODO ON ACTUAL 13 -- 
+        dropDownTop: (caret.top + caret.height) - this.elTextarea.scrollTop, // MUST REPLACE TODO ON ACTUAL 36 and others --
+        dropDownLeft: caret.left - this.elTextarea.scrollLeft, //searchTextObj.textPos * 12.5 + 13, // MUST REPLACE TODO ON ACTUAL 13 -- 
         searchList: [...searchTextResult],
         selectedSearchListIndex: 0,
         searchText: searchTextObj.searchText,
