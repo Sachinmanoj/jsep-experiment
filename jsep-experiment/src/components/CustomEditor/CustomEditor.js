@@ -261,7 +261,6 @@ class CustomEditor extends Component {
     let searchTextResult = this.canSearch(searchTextObj.searchText) ? 
         this.getSearchResults(searchTextObj.searchText) : [];    
     var caret = getCaretCoordinates(this.elTextarea, this.elTextarea.selectionEnd);
-    // console.log(caret);
 
     if(searchTextResult.length > 0) {
       this.setState({
@@ -355,8 +354,8 @@ class CustomEditor extends Component {
 
   getSearchResults(searchText){
     const searchTextPattern = new RegExp(searchText.replace(/[^a-z A-Z 0-9 %]/g,''),'gi'); 
-    let filterArray = this.getFilterDisplay([...filters]);
-    return filterArray.filter( childFilter => childFilter.search(searchTextPattern)>-1 );
+    let filterArray = filters.filter( childFilter => childFilter['display'].search(searchTextPattern)>-1 || (childFilter['def'] && childFilter['def'].search(searchTextPattern)>-1)  );
+    return this.getFilterDisplay(filterArray);
   }
 
   /** -------------- SEARCH OPERATIONS - END --------------- */
@@ -439,7 +438,6 @@ class CustomEditor extends Component {
     switch(tree.type) {
 
       case "Literal": 
-        console.log(tree.raw);
         return;
 
       case "BinaryExpression": 
@@ -447,7 +445,6 @@ class CustomEditor extends Component {
           throw "Error - Unary operations are not allowed";
         }
         this.inOrderTraversalCheck(tree.left);
-        console.log(tree.operator);
         this.inOrderTraversalCheck(tree.right);
         return;
 
@@ -482,7 +479,7 @@ class CustomEditor extends Component {
     if(!checkStatus.success) {
       throw "Error - Invalid expression";
     }
-    return expression.replace(/\"/g, '');
+    return expression.replace(/"/g, '');
   }
 
   getParsedExression() {
@@ -504,6 +501,36 @@ class CustomEditor extends Component {
       
     }, '');
   }
+
+  removeEmptyBrackets(exp) {
+    let expArr = exp.split('');
+    let bracketStack = [];
+    return expArr.reduce((str, char) => {
+      switch(char){
+
+        case '(': 
+          bracketStack.push(char);
+          return str;
+
+        case ')':
+          if(bracketStack.length > 0 ) {
+            bracketStack.pop();
+          }
+          else {
+            str = str + char;
+          }
+          return str;
+
+        case ' ':
+          return bracketStack.length > 0 ? str : str + char;
+
+        default : 
+          str = str + bracketStack.join(' ') + char;
+          bracketStack = [];
+          return str;
+      }
+    }, '');
+  }
   
   evalExpression() {
     if(this.code === null || this.code.length < 1) {
@@ -512,6 +539,7 @@ class CustomEditor extends Component {
     try{
       var backEndExp = this.getParsedExression();
       var fianlExpression = this.bodmasEval(backEndExp);
+      fianlExpression = this.removeEmptyBrackets(fianlExpression);
       this.hideDropdown(() => {
         this.setState({
           evalResult: fianlExpression
