@@ -10,7 +10,6 @@
 .cust-editor__container {
   position: absolute;
   overflow: auto;
-  z-index: 1;
   width: 100%;
   height: 100%;
   background: #fff;
@@ -20,6 +19,7 @@
   padding: 10px 15px;
   text-align: left;
   border-radius: 4px;
+  z-index: 1;
 }
 
 .cust-editor__win, .cust-editor__win * {
@@ -29,19 +29,20 @@
 .cust-editor__text-area {
   background: none;
   border: none;
-  /* color: transparent; */
-  z-index: 3;
+  /* color: transparent; */   /* TODO - MUST ON PROD */
   resize: none;
   -webkit-appearance: pre;
   caret-color: #111;
   width: 100%;
   height: 100%;
+  z-index: 3;
 }
 
 .cust-editor__pre {
   pointer-events: none;
+  height: 100%;
+  width: 100%;
   z-index: 5;
-  overflow: hidden;
 }
 
 .cust-editor__code {
@@ -79,9 +80,9 @@
   font-family: monospace;
   background: #ffffff;
   border: solid 1px #d1d1d1;
-  z-index: 7;
   background-color: rgb(255, 255, 255);
   box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+  z-index: 7;
 }
 
 ol, ul {
