@@ -1,8 +1,16 @@
 import React, { Component } from 'react';
-import {escape_html} from './utils/html-escape';
-import {customfilterSyntax, filters, separtors} from '../../constants/constants';
 import Prism from 'prismjs';
 import getCaretCoordinates from 'textarea-caret';
+import jsep from 'jsep';
+
+import {escape_html} from './utils/html-escape';
+import {
+  customfilterSyntax, 
+  filters, 
+  separtors, 
+  allowedBinaryExpression,
+} from '../../constants/constants';
+
 import './CustomEditor.css'
 
 class CustomEditor extends Component {
@@ -17,6 +25,7 @@ class CustomEditor extends Component {
       selectedSearchListIndex: 0,
       searchText: null,
       searchTextPos: null,
+      evalResult: ''
     }
 
     this.opts = {
@@ -45,11 +54,25 @@ class CustomEditor extends Component {
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleOnScroll = this.handleOnScroll.bind(this);
 
+    this.evalExpression = this.evalExpression.bind(this);
+
     this.code = null;
     this.codeHTML = null;
   }
 
+  getFilterDisplay(filtersArr) {
+    return filtersArr.map((fil) => {
+      return fil.display;
+    });
+  }
+
+  getFilterLabel(filtersArr, keyword) {
+    const index = filtersArr.findIndex((fil) => fil.display === keyword);
+    return filtersArr[index].label;
+  }
+
   createFilterRegex(filtersArr) {
+    filtersArr = this.getFilterDisplay(filtersArr);
     filtersArr.sort(function(a, b){
       return b.length - a.length;
     });
@@ -62,7 +85,6 @@ class CustomEditor extends Component {
   }
 
   updateCustomFilterErrors() {
-    // let regexpress = `^/(?!${filters.join('|')})([\\S]+)`;
     let regexpress = `([\\S]){1,61}`;     // MUST REPLACE TODO ON ACTUAL 61 -- 
     return new RegExp(regexpress);
   }
@@ -276,7 +298,7 @@ class CustomEditor extends Component {
   };
 
 
-  /** Search operation */
+  /** -------------- SEARCH OPERATIONS - START --------------- */
 
   getTockenOfChar(text, selectionStart) {
     let tokens = Prism.tokenize(text, this.syntaxRegex);
@@ -333,10 +355,14 @@ class CustomEditor extends Component {
 
   getSearchResults(searchText){
     const searchTextPattern = new RegExp(searchText.replace(/[^a-z A-Z 0-9 %]/g,''),'gi'); 
-    return filters.filter( childFilter => childFilter.search(searchTextPattern)>-1 );
+    let filterArray = this.getFilterDisplay([...filters]);
+    return filterArray.filter( childFilter => childFilter.search(searchTextPattern)>-1 );
   }
 
-  /** Dropdown option list */
+  /** -------------- SEARCH OPERATIONS - END --------------- */
+
+  
+  /** -------------- DROPDOWN LIST OPERATIONS - START --------------- */
 
   updateTheSearchOptionIndex(index) {
     if(index >= 0 && index < this.state.searchList.length) {
@@ -394,36 +420,152 @@ class CustomEditor extends Component {
     this.hideDropdown(() => this.updateCodeAndHighlight(newCode));
   }
 
+  /** -------------- DROPDOWN LIST OPERATIONS - END --------------- */
+
+
+  /** -------------- EXPRESSION EVALUATION - START --------------- */
+
+  configureJSEP () {
+    var binaryExp = allowedBinaryExpression;
+    jsep.removeAllUnaryOps();
+    jsep.removeAllBinaryOps();
+    Object.keys(binaryExp).forEach(exp => {
+      jsep.addBinaryOp(exp, binaryExp[exp].precedence);
+    });
+  }
+
+
+  inOrderTraversalCheck(tree) {
+    switch(tree.type) {
+
+      case "Literal": 
+        console.log(tree.raw);
+        return;
+
+      case "BinaryExpression": 
+        if (!tree.left || !tree.right) {
+          throw "Error - Unary operations are not allowed";
+        }
+        this.inOrderTraversalCheck(tree.left);
+        console.log(tree.operator);
+        this.inOrderTraversalCheck(tree.right);
+        return;
+
+      default:
+        throw "Error - Invalid BODMAS expression";
+    }
+  }
+
+  checkExpressionEval(tree) {
+    switch(tree.type) {
+
+      case "Compound": 
+        // return this.findCompoundExpressionError(tree.body); TODO MUST FOR PROD
+        return { success: false };
+
+      case "Literal": 
+        return { success: true };
+
+      case "BinaryExpression": 
+        this.inOrderTraversalCheck(tree);
+        return { success: true };
+
+      default:
+        return { success: false };
+    }
+  }
+
+  bodmasEval(expression) {
+    this.configureJSEP();
+    let treeFormat = jsep(expression);
+    let checkStatus = this.checkExpressionEval(treeFormat);
+    if(!checkStatus.success) {
+      throw "Error - Invalid expression";
+    }
+    return expression.replace(/\"/g, '');
+  }
+
+  getParsedExression() {
+    var expression = Prism.tokenize(this.code, this.syntaxRegex);
+    return expression.reduce((expStr, token) => {
+      
+      if (typeof token === 'string') {
+        return expStr;
+      }
+      else if (token.type === "error") { 
+        throw "Error - Found invalid filter in expression";
+      }
+      else if (token.type === "keyword") {
+        return `${expStr}"${this.getFilterLabel(filters, token.content)}" `;
+      }
+      else {
+        return expStr + token.content + ' ';
+      }
+      
+    }, '');
+  }
+  
+  evalExpression() {
+    if(this.code === null || this.code.length < 1) {
+      return;
+    }
+    try{
+      var backEndExp = this.getParsedExression();
+      var fianlExpression = this.bodmasEval(backEndExp);
+      this.hideDropdown(() => {
+        this.setState({
+          evalResult: fianlExpression
+        });
+      });
+    }
+    catch(err) {
+      this.hideDropdown(() => {
+        this.setState({
+          evalResult: JSON.stringify(err) + "  <--->  " + backEndExp
+        });
+      });
+    }
+  }
+
+  /** -------------- EXPRESSION EVALUATION - END --------------- */
+
+
   render() {
     return (
-      <div className="cust-editor__win">
-        <div className="cust-editor__container" spellCheck="false"> 
-          <textarea className="cust-editor__text-area cust-editor__flatten cust-editor__wrap"
-            ref={(e) => this.elTextarea = e} 
-            onInput={this.handleInputCode} 
-            onPaste={this.handlePasteCode} 
-            onKeyDown={this.handleKeyDown}
-            onScroll={this.handleOnScroll}/>
-          <pre className="cust-editor__pre cust-editor__flatten cust-editor__wrap" > 
-            <code ref={(e) => this.elCode = e} className={`cust-editor__code language-${this.languageSyntax}`}> </code>
-          </pre>
-        </div>
-        {
-          this.state.showDropdown && 
-          <div className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
-            <ul>
-              {
-                this.state.searchList.map((filter, index) =>
-                  <li id={'cust-editor__id-' + index} className={this.state.selectedSearchListIndex === index ? 'selected' : ''} 
-                    onMouseEnter={() => this.setActiveTextOptionSelection(index)} 
-                    onMouseDown={() => this.onTextSelection(index)} key={filter.replace(/ /g, '')}>
-                    {filter}
-                  </li>
-                )
-              }
-            </ul>
+      <div>
+        <div className="cust-editor__win">
+          <div className="cust-editor__container" spellCheck="false"> 
+            <textarea className="cust-editor__text-area cust-editor__flatten cust-editor__wrap"
+              ref={(e) => this.elTextarea = e} 
+              onInput={this.handleInputCode} 
+              onPaste={this.handlePasteCode} 
+              onKeyDown={this.handleKeyDown}
+              onScroll={this.handleOnScroll}/>
+            <pre className="cust-editor__pre cust-editor__flatten cust-editor__wrap" > 
+              <code ref={(e) => this.elCode = e} className={`cust-editor__code language-${this.languageSyntax}`}> </code>
+            </pre>
           </div>
-        }
+          {
+            this.state.showDropdown && 
+            <div className="cust-editor__drop-down" style={{top: this.state.dropDownTop, left: this.state.dropDownLeft}}>
+              <ul>
+                {
+                  this.state.searchList.map((filter, index) =>
+                    <li id={'cust-editor__id-' + index} className={this.state.selectedSearchListIndex === index ? 'selected' : ''} 
+                      onMouseEnter={() => this.setActiveTextOptionSelection(index)} 
+                      onMouseDown={() => this.onTextSelection(index)} key={filter.replace(/ /g, '')}>
+                      {filter}
+                    </li>
+                  )
+                }
+              </ul>
+            </div>
+          }
+        </div>
+        <div className="eval__div"> 
+          <p className="eval__value">{this.state.evalResult}</p>
+          <button className="eval__btn" onClick={this.evalExpression}> Evaluate </button>
+        </div>
       </div>
     );
   }

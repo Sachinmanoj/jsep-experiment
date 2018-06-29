@@ -131,3 +131,36 @@ ol, ul {
 .cust-editor__win .token.active {
   border-bottom: 1px solid  #1f7ae0;
 }
+
+.eval__div {
+  margin: 0 auto;
+  width: 1080px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.eval__btn {
+  width: 200px;
+  height: 48px;
+  border-radius: 4px;
+  border: solid 1px #d1d1d1;
+  background-color: #1f7ae0;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.eval__value {
+  flex-basis: 500px;
+  margin: 0;
+  padding: 8px;
+  height: 60px;
+  color: #535b62;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: solid 1px #d1d1d1;
+  word-wrap: break-word;
+}
