@@ -9,6 +9,7 @@ import {
   filters, 
   separtors, 
   allowedBinaryExpression,
+  errorsCodes,
 } from '../../constants/constants';
 
 import './CustomEditor.css'
@@ -442,14 +443,14 @@ class CustomEditor extends Component {
 
       case "BinaryExpression": 
         if (!tree.left || !tree.right) {
-          throw "Error - Unary operations are not allowed";
+          throw errorsCodes.unaryNotAllowed;
         }
         this.inOrderTraversalCheck(tree.left);
         this.inOrderTraversalCheck(tree.right);
         return;
 
       default:
-        throw "Error - Invalid BODMAS expression";
+        throw errorsCodes.invalidBodmas;
     }
   }
 
@@ -458,7 +459,10 @@ class CustomEditor extends Component {
 
       case "Compound": 
         // return this.findCompoundExpressionError(tree.body); TODO MUST FOR PROD
-        return { success: false };
+        return { 
+          success: false,
+          errorCode: errorsCodes.compoundExpressionNotallowed
+        };
 
       case "Literal": 
         return { success: true };
@@ -468,7 +472,10 @@ class CustomEditor extends Component {
         return { success: true };
 
       default:
-        return { success: false };
+        return { // ------> Should never occur 
+          success: false,
+          errorCode: errorsCodes.invalidExpression
+        };    
     }
   }
 
@@ -477,7 +484,7 @@ class CustomEditor extends Component {
     let treeFormat = jsep(expression);
     let checkStatus = this.checkExpressionEval(treeFormat);
     if(!checkStatus.success) {
-      throw "Error - Invalid expression";
+      throw checkStatus.errorCode;
     }
     return expression.replace(/"/g, '');
   }
@@ -490,7 +497,7 @@ class CustomEditor extends Component {
         return expStr;
       }
       else if (token.type === "error") { 
-        throw "Error - Found invalid filter in expression";
+        throw errorsCodes.invalidFilters;
       }
       else if (token.type === "keyword") {
         return `${expStr}"${this.getFilterLabel(filters, token.content)}" `;

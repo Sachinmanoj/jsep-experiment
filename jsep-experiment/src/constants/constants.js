@@ -640,6 +640,73 @@ const constant = {
     'number': /\b0x[\da-f]+\b|(?!\b\d+w|\b\d+W|\b\d+d|\b\d+D|\b\d+m|\b\d+M|\b\d+y|\b\d+Y)(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
     'operator': /-|\+|\*|\//,
     'punctuation': /[[\]()]/,
+  },
+  errorsCodes : {
+    invalidFilters: {
+      description: "Error - Found invalid filter in expression",
+      showMsg: "Error - Found invalid filter in expression",
+      indicateError: false,
+    },
+    invalidExpression: {
+      description: "Error - Invalid expression",
+      showMsg: "Error - Invalid expression",
+      indicateError: true,
+      errorType: "all"
+    },
+    compoundExpressionNotallowed: {
+      description: "Error - Compound expression not allowed",
+      showMsg: "Error - Invalid expression",
+      indicateError: true,
+      errorType: "Compound"
+    },
+    unaryNotAllowed: {
+      description: "Error - Unary operations are not allowed",
+      showMsg: "Error - Unary operations are not allowed",
+      indicateError: false,
+    },
+    invalidBodmas: {
+      description: "Error - Invalid BODMAS expression",
+      showMsg: "Error - Invalid BODMAS expression",
+      indicateError: true,
+      errorType: "all"
+    },
+    invalidOpenBracket: {
+      description: "Unclosed (",
+      showMsg: "Error - Unclosed bracket",
+      indicateError: true,
+      errorType: "indexBased"
+    },
+    invalidCloseBracket: {
+      description: "Unexpected \")\"",
+      showMsg: "Error - Unexpected close bracket",
+      indicateError: true,
+      errorType: "indexBased"
+    },
+    invalidPlusExp: {
+      description: "Expected expression after +",
+      showMsg: "Error - Expected expression after +\nNote: Unary operations are not allowed",
+      indicateError: true,
+      errorType: "indexBased"
+    },
+    invalidMinusExp: {
+      description: "Expected expression after -",
+      showMsg: "Error - Expected expression after -\nNote: Unary operations are not allowed",
+      indicateError: true,
+      errorType: "indexBased"
+    },
+    invalidMulExp: {
+      description: "Expected expression after *",
+      showMsg: "Error - Expected expression after *",
+      indicateError: true,
+      errorType: "indexBased"
+    },
+    invalidDivExp: {
+      description: "Expected expression after /",
+      showMsg: "Error - Expected expression after /",
+      indicateError: true,
+      errorType: "indexBased"
+    }
+
   }
 }
 
