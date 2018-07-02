@@ -125,11 +125,15 @@ ol, ul {
 
 .cust-editor__win .token.error {
   color: #ef4f5d;
-  border-bottom: 1px solid  #ff5942;
+  border-bottom: 1px dashed  #ff5942;
+}
+
+.cust-editor__win .token.indicate-error {
+  border-bottom: 1px dashed #ff5942;
 }
 
 .cust-editor__win .token.active {
-  border-bottom: 1px solid  #1f7ae0;
+  border-bottom: 1px solid #1f7ae0;
 }
 
 .eval__div {

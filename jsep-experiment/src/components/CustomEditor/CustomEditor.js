@@ -58,7 +58,9 @@ class CustomEditor extends Component {
     this.evalExpression = this.evalExpression.bind(this);
 
     this.code = null;
-    this.codeHTML = null;
+    this.treeFormat = null;
+    this.backEndExp = null;
+      
   }
 
   getFilterDisplay(filtersArr) {
@@ -105,7 +107,6 @@ class CustomEditor extends Component {
 
   updateUICode(newCode) {
     this.elCode.innerHTML = escape_html(newCode);
-    this.codeHTML = this.elCode.innerHTML;
   }
 
   updateCode(newCode) { // TODO
@@ -481,8 +482,8 @@ class CustomEditor extends Component {
 
   bodmasEval(expression) {
     this.configureJSEP();
-    let treeFormat = jsep(expression);
-    let checkStatus = this.checkExpressionEval(treeFormat);
+    this.treeFormat = jsep(expression);
+    let checkStatus = this.checkExpressionEval(this.treeFormat);
     if(!checkStatus.success) {
       throw checkStatus.errorCode;
     }
@@ -544,8 +545,9 @@ class CustomEditor extends Component {
       return;
     }
     try{
-      var backEndExp = this.getParsedExression();
-      var fianlExpression = this.bodmasEval(backEndExp);
+      this.treeFormat = null;
+      this.backEndExp = this.getParsedExression();
+      var fianlExpression = this.bodmasEval(this.backEndExp);
       fianlExpression = this.removeEmptyBrackets(fianlExpression);
       this.hideDropdown(() => {
         this.setState({
@@ -555,11 +557,93 @@ class CustomEditor extends Component {
     }
     catch(err) {
       this.hideDropdown(() => {
-        this.setState({
-          evalResult: JSON.stringify(err) + "  <--->  " + backEndExp
-        });
+        this.indicateAndShowError(err);
       });
     }
+  }
+
+  getRightChildTokenId(tree, sum) {
+    switch(tree.type) {
+
+      case "Literal": return sum;
+
+      case "BinaryExpression": 
+        sum = this.getRightChildTokenId(tree.left, sum);
+        sum = this.getRightChildTokenId(tree.right, sum + 2);
+        return sum;
+
+      default: return;
+
+    }
+  }
+
+  getErrorCodes(err) {
+    let errorKey = Object.keys(errorsCodes).find(errKey =>
+      errorsCodes[errKey].description === err.description
+    );
+    let errorObj = errorsCodes[errorKey];
+    return errorObj ? { ...errorObj, ...err} : err;
+  }
+
+  showError(message) {
+    this.setState({ 
+      evalResult: message
+    });
+  }
+
+  addClassIndicateErrorToAll() {
+    let innerHTML = Prism.highlight(this.code, this.syntaxRegex);
+    this.elCode.innerHTML = innerHTML.replace(/class="token/g, 'class="token indicate-error');
+  }
+
+  highlighTokenErrors(erroredTokenIds, excludePunctutations) {
+    let innerHTML = Prism.highlight(this.code, this.syntaxRegex);
+    // MUST TODO PROD --> 
+    console.log('innerHTML ', innerHTML);
+    console.log('erroredTokenIds ', erroredTokenIds);
+  }
+
+  highlightCompoundError() {
+    if(this.treeFormat.body.length < 1) {
+      return this.addClassIndicateErrorToAll();
+    }
+    let tokenID = 0;
+    let erroredTokenIds = this.treeFormat.body.reduce((tokens, tree, index) => {
+      if((index + 1) < this.treeFormat.body.length) {
+        tokenID = this.getRightChildTokenId(tree, tokenID);
+        tokens.push(tokenID);
+        tokens.push(++tokenID);
+      }
+      return tokens;
+    }, []);
+    // MUST TODO PROD --> REMOVE DUPLICATES IN "erroredTokenIds"
+    this.highlighTokenErrors(erroredTokenIds, true);
+  }
+
+  highlightIndexBasedErrors(index) {
+    let sum = 0;
+    let erroredTokenId = this.backEndExp.split(' ').findIndex((words => {
+      sum = sum + words.length + 1;
+      return index < sum;
+    }));
+    this.highlighTokenErrors([erroredTokenId], false);
+  }
+
+  updateErrorIndication(errorKeyCode) {
+    switch(errorKeyCode.errorType) {
+      case 'all': return this.addClassIndicateErrorToAll();
+      case 'Compound': return this.highlightCompoundError();
+      case 'indexBased': return this.highlightIndexBasedErrors(errorKeyCode.index);
+      default: return;
+    }
+  }
+
+  indicateAndShowError(err) {
+    var errorKeyCode = this.getErrorCodes(err);
+    if(errorKeyCode.indicateError) {
+      this.updateErrorIndication(errorKeyCode);
+    }
+    this.showError(errorKeyCode.showMsg ? errorKeyCode.showMsg : errorKeyCode.description);
   }
 
   /** -------------- EXPRESSION EVALUATION - END --------------- */
